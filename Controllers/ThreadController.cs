@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 [ApiController]
 public class ThreadController : ControllerBase
@@ -11,17 +12,23 @@ public class ThreadController : ControllerBase
         _context = context;
     }
 
-    [HttpGet(Routes.Threads.Get)]
-    public ActionResult<Thread> GetThread(Guid id)
+    [HttpGet(Routes.Threads.Base)]
+    public async Task<ActionResult<Thread[]>> GetAll()
     {
-        var thread = _context.Threads.Find(id);
+        return Ok(await _context.Threads.ToArrayAsync());
+    }
+
+    [HttpGet(Routes.Threads.Get)]
+    public async Task<ActionResult<Thread>> GetThread(Guid id)
+    {
+        var thread = await _context.Threads.FindAsync(id);
         if (thread == null)
             return NotFound();
-        return thread;
+        return Ok(thread);
     }
 
     [HttpPost(Routes.Threads.Create)]
-    public ActionResult<Thread> CreateThread(ThreadCreateRequest request)
+    public async Task<ActionResult<Thread>> CreateThread(ThreadCreateRequest request)
     {
         if (request.Title == null)
             return BadRequest();
@@ -29,8 +36,8 @@ public class ThreadController : ControllerBase
         {
             Title = request.Title
         };
-        _context.Threads.Add(thread);
-        _context.SaveChanges();
+        await _context.Threads.AddAsync(thread);
+        await _context.SaveChangesAsync();
         return CreatedAtAction(nameof(GetThread), new { id = thread.Id }, thread);
     }
 }
