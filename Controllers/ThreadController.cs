@@ -13,6 +13,17 @@ public class ThreadController : ControllerBase
     }
 
     [HttpGet(Routes.Threads.Base)]
+    public async Task<ActionResult<ThreadsResponse>> GetThreads()
+    {
+        var threads = _context.Threads.ToListAsync();
+        ThreadsResponse response = new ThreadsResponse
+        {
+            ThreadsCount = await threads.Count(),
+            Threads = threads
+        };
+        return response;
+    }
+
     public async Task<ActionResult<Thread[]>> GetAll()
     {
         return Ok(await _context.Threads.ToArrayAsync());
